@@ -1,50 +1,59 @@
 # Chocolatey Packages
 
-~~~
-<!-- EDIT ME-->
+[![Update](https://github.com/vzhd1701/chocolatey-packages/actions/workflows/update.yml/badge.svg)](https://github.com/vzhd1701/chocolatey-packages/actions/workflows/update.yml)
 
-[![](https://ci.appveyor.com/api/projects/status/github/YOUR_GITHUB_USERNAME_HERE/chocolatey-packages?svg=true)](https://ci.appveyor.com/project/YOUR_GITHUB_USERNAME_HERE/chocolatey-packages)
-[Update status](https://gist.github.com/YOUR_GITHUB_USERNAME_HERE/YOUR_GIST_ID)
+Automatic Chocolatey packages, updated with [chocolatey-au](https://github.com/chocolatey-community/chocolatey-au) on GitHub Actions.
 
-<!-- REMOVE THE squiggles "~" surrounding this (this should not be a code block) -->
-~~~
+## Packages
 
-## Chocolatey Packages Template
+| Package | Description |
+| --- | --- |
+| [gridplayer](https://community.chocolatey.org/packages/gridplayer) | Virtual package; installs `gridplayer.install` |
+| [gridplayer.install](https://community.chocolatey.org/packages/gridplayer.install) | Inno Setup installer (32-bit and 64-bit) |
+| [gridplayer.portable](https://community.chocolatey.org/packages/gridplayer.portable) | Zip portable (32-bit and 64-bit) |
+| [evernote-backup](https://community.chocolatey.org/packages/evernote-backup) | CLI to backup and export Evernote notes (x64) |
 
-This contains Chocolatey packages, both manually and automatically maintained.
+## Folder structure
 
-### Folder Structure
+* `automatic` — packages maintained by chocolatey-au (`update.ps1` in each package directory)
+* `icons` — package icons
+* `manual` — packages that are not automatic
 
-* automatic - where automatic packaging and packages are kept. These are packages that are automatically maintained using [chocolatey-au](https://github.com/chocolatey-community/chocolatey-au).
-* icons - Where you keep icon files for the packages. This is done to reduce issues when packages themselves move around.
-* manual - where packages that are not automatic are kept.
+## Local update
 
-### Requirements
+Requires PowerShell 5+, Chocolatey, and `choco install chocolatey-au`.
 
-* Chocolatey (choco.exe)
+```powershell
+# one package
+cd automatic\gridplayer.install
+.\update.ps1
 
-#### AU
+# all packages
+.\update_all.ps1
+```
 
-* PowerShell v5+.
-* The [chocolatey-au module](https://github.com/chocolatey-community/chocolatey-au).
+Copy `update_vars.ps1` locally (gitignored) if you want to set `api_key` / `github_api_key` for a local run. Leave `au_Push` as `false` unless you intend to publish.
 
-### Getting started
+Force a version even when GitHub already matches the nuspec:
 
-1. Click "Use this template" then "Create a new repository". Name it `chocolatey-packages`
-1. Clone the repository locally.
-1. Head into the `setup` folder and perform the steps in the README there.
-1. Edit this README. Update the badges at the top.
+```powershell
+$au_Force = $true
+.\update_all.ps1 -ForcedPackages 'gridplayer.install gridplayer.portable gridplayer'
+```
 
-### Adapting your current source repository to this source repository template
+## GitHub Actions
 
-You want to bring in all of your packages into the proper folders. We suggest using some sort of diffing tool to look at the differences between your current solution and this solution and then making adjustments to it. Pay special attention to the setup folder.
+`.github/workflows/update.yml` runs every 8 hours, on push to `master`, and on manual dispatch.
 
-1. Bring over the following files to your package source repository:
- * `automatic\README.md`
- * `icons\README.md`
- * `manual\README.md`
- * `setup\*.*`
- * `.appveyor.yml`
-1. Inspect the following file and add the differences:
- * `.gitignore`
+It updates package files from the latest GitHub releases, commits changes, then pushes nupkgs to chocolatey.org (`.install` and `.portable` before virtual packages).
 
+Set these repository secrets:
+
+* `CHOCOLATEY_API_KEY` — required to publish
+* `GIST_ID` — optional; AU writes the update report gist when set (needs a PAT with `gist` scope in a custom `github_api_key` if you use this)
+
+Force from the Actions UI (`forced_packages` input) or with a commit message:
+
+```
+[AU gridplayer.install gridplayer.portable gridplayer]
+```

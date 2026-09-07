@@ -6,5 +6,5 @@
 * Run `au_setup.ps1`.
 * For local automatic packaging, copy `update_vars_default.ps1` to `update_default.ps1` and fill it in.
 * Configure chocolatey-au [plugins](https://github.com/chocolatey-community/chocolatey-au/blob/master/Plugins.md).
-* Configure [AppVeyor](https://github.com/chocolatey-community/chocolatey-au/wiki/AppVeyor).
+* Configure GitHub Actions secrets (`CHOCOLATEY_API_KEY`, optional `GIST_ID`). The updater workflow is `.github/workflows/update.yml`.
 * Configure [local run](https://github.com/chocolatey-community/chocolatey-au/wiki#local-run).
