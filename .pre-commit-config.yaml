@@ -1,0 +1,16 @@
+# See https://pre-commit.com/ for usage and config
+# pre-commit install
+# need commit-msg hook for commitzen
+# pre-commit install --hook-type commit-msg
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [ --markdown-linebreak-ext=md ]
+      - id: mixed-line-ending
+        args: [ '--fix=lf' ]
+      - id: check-toml
+      - id: check-yaml
