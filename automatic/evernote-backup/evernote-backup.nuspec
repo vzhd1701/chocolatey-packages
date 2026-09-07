@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>evernote-backup</id>
+    <version>1.14.0</version>
+    <projectUrl>https://github.com/vzhd1701/evernote-backup</projectUrl>
+    <projectSourceUrl>https://github.com/vzhd1701/evernote-backup</projectSourceUrl>
+    <packageSourceUrl>https://github.com/vzhd1701/chocolatey-packages</packageSourceUrl>
+    <licenseUrl>https://github.com/vzhd1701/evernote-backup/blob/master/LICENSE</licenseUrl>
+    <bugTrackerUrl>https://github.com/vzhd1701/evernote-backup/issues</bugTrackerUrl>
+    <releaseNotes>https://github.com/vzhd1701/evernote-backup/blob/master/CHANGELOG.md</releaseNotes>
+    <owners>vzhd1701</owners>
+    <authors>vzhd1701</authors>
+    <title>evernote-backup</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <tags>evernote backup export enex yinxiang cli</tags>
+    <summary>Backup and export all Evernote notes and notebooks</summary>
+    <description>Backup your notes and notebooks from Evernote locally and export them at any time.
+
+## Features
+
+- Quickly sync all your notes into a SQLite database for backup
+- Export all backed up notes in `*.enex` format, as notebooks or single notes
+- Support for both [Evernote](https://evernote.com/) and [Yinxiang (印象笔记)](https://yinxiang.com/)
+
+## Usage
+
+```
+evernote-backup init-db
+evernote-backup sync
+evernote-backup export output_dir/
+```
+
+## Notes
+
+- Windows x64 (CLI portable binary; ARM64 Windows runs it via emulation)
+- Adds `evernote-backup` to PATH
+- PyInstaller binaries are sometimes flagged as false positives by antivirus software</description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
