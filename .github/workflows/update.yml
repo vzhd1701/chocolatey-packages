@@ -1,0 +1,117 @@
+name: Update
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      forced_packages:
+        description: Packages to force-update (e.g. "gridplayer.install gridplayer.portable gridplayer" or "gridplayer.install:0.5.5")
+        required: false
+
+concurrency:
+  group: package-update
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Check for updates
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      au_Push: 'false'
+      github_user_repo: ${{ github.repository }}
+      github_user: x-access-token
+      github_api_key: ${{ secrets.GITHUB_TOKEN }}
+      gist_id: ${{ secrets.GIST_ID }}
+      api_key: ${{ secrets.CHOCOLATEY_API_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize Git environment
+        shell: powershell
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global core.safecrlf false
+
+      - name: Show environment information
+        shell: powershell
+        run: |
+          Get-CimInstance win32_operatingsystem -Property Caption, OSArchitecture, Version | Format-List Caption, OSArchitecture, Version
+          $PSVersionTable
+          git --version
+          choco --version
+          '  {0,-20} {1}' -f 'EVENT:', '${{ github.event_name }}'
+
+      - name: Install chocolatey-au
+        shell: powershell
+        run: choco install chocolatey-au -y
+
+      - name: Run update
+        shell: powershell
+        env:
+          FORCED_PACKAGES: ${{ github.event.inputs.forced_packages }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $forced = $env:FORCED_PACKAGES
+
+          if ($env:EVENT_NAME -eq 'push' -and $env:COMMIT_MESSAGE) {
+            switch -regex ($env:COMMIT_MESSAGE) {
+              '\[AU (.+?)\]' { $forced = $Matches[1] }
+            }
+          }
+
+          if ($forced) { Write-Host "FORCED PACKAGES: $forced" }
+          ./update_all.ps1 -ForcedPackages $forced
+
+      - name: Push updated packages to Chocolatey
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:api_key) {
+            Write-Host 'CHOCOLATEY_API_KEY is not set; skipping choco push'
+            return
+          }
+
+          $nupkgs = @(Get-ChildItem -Path automatic -Recurse -Filter *.nupkg)
+          if ($nupkgs.Count -eq 0) {
+            Write-Host 'No nupkgs to push'
+            return
+          }
+
+          function Get-PushOrder {
+            param($Item)
+            if ($Item.Name -match '\.install\.') { return 0 }
+            if ($Item.Name -match '\.portable\.') { return 1 }
+            return 2
+          }
+
+          $nupkgs | Sort-Object { Get-PushOrder $_ }, Name | ForEach-Object {
+            Write-Host "Pushing $($_.Name)"
+            choco push $_.FullName --source https://push.chocolatey.org/ --api-key $env:api_key
+            if ($LASTEXITCODE -ne 0) {
+              throw "choco push failed for $($_.Name) with exit code $LASTEXITCODE"
+            }
+          }
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: au-results
+          path: |
+            update_info.xml
+            Update-AUPackages.md
+            Update-History.md
+            automatic/**/*.nupkg
+          if-no-files-found: ignore
+          retention-days: 14
