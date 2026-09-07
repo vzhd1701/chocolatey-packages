@@ -25,7 +25,7 @@ jobs:
       au_Push: 'false'
       github_user_repo: ${{ github.repository }}
       github_user: x-access-token
-      github_api_key: ${{ secrets.GITHUB_TOKEN }}
+      github_api_key: ${{ secrets.GH_GIST }}
       gist_id: ${{ secrets.GIST_ID }}
       api_key: ${{ secrets.CHOCOLATEY_API_KEY }}
     steps:
